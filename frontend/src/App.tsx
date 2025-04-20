@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import useControls from "./hooks/useControls";
 import { useWebSocket } from "./hooks/useWebSocket";
+import KeyboardControls from "./components/KeyboardControls";
+import "./components/KeyboardControls.css";
 
 function App() {
   const [url, setUrl] = useState("");
   const [urlText, setUrlText] = useState("");
 
-  const { fb, lr, ud } = useControls();
+  const { fb, lr, ud, simulateKeyPress, simulateKeyRelease } = useControls();
   const { sendMessage, isConnected, addMessageListener } = useWebSocket({
     url,
   });
@@ -53,7 +55,17 @@ function App() {
         onChange={(e) => setUrlText(e.target.value)}
       />
       <button onClick={connect}>Connect</button>
-      <div>{isConnected ? "Connected" : "Disconnected"}</div>
+      <div
+        className={`connection-status ${
+          isConnected ? "connected" : "disconnected"
+        }`}
+      >
+        {isConnected ? "Connected" : "Disconnected"}
+      </div>
+      <KeyboardControls
+        onKeyPress={simulateKeyPress}
+        onKeyRelease={simulateKeyRelease}
+      />
     </div>
   );
 }

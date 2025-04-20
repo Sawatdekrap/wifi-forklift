@@ -5,6 +5,25 @@
   text-align: center;
 }
 
+.connection-status {
+  margin: 1rem 0;
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.connection-status.connected {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.connection-status.disconnected {
+  background-color: #f44336;
+  color: white;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;

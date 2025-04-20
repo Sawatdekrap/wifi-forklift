@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 
+interface Controls {
+  fb: number;
+  lr: number;
+  ud: number;
+}
+
 const useControls = () => {
-  const [controls, setControls] = useState({
+  const [controls, setControls] = useState<Controls>({
     fb: 0,
     lr: 0,
     ud: 0,
@@ -53,6 +59,16 @@ const useControls = () => {
     }
   };
 
+  const simulateKeyPress = (key: string) => {
+    const event = new KeyboardEvent("keydown", { key });
+    document.dispatchEvent(event);
+  };
+
+  const simulateKeyRelease = (key: string) => {
+    const event = new KeyboardEvent("keyup", { key });
+    document.dispatchEvent(event);
+  };
+
   useEffect(() => {
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
@@ -63,7 +79,7 @@ const useControls = () => {
     };
   }, []);
 
-  return controls;
+  return { ...controls, simulateKeyPress, simulateKeyRelease };
 };
 
 export default useControls;

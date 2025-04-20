@@ -1,0 +1,55 @@
+.keyboard-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 20px;
+}
+
+.keyboard-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.key-button {
+  width: 120px;
+  height: 120px;
+  border: 2px solid #333;
+  border-radius: 8px;
+  background-color: #f0f0f0;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s ease;
+  padding: 0;
+}
+
+.key-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.key-letter {
+  font-size: 48px;
+  color: #333;
+}
+
+.key-function {
+  font-size: 16px;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.key-button:active {
+  background-color: #ddd;
+  transform: scale(0.95);
+}
+
+.key-button:hover {
+  background-color: #e0e0e0;
+}
