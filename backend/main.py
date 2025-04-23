@@ -1,9 +1,33 @@
 import asyncio
 import argparse
 from websockets.asyncio.server import serve
+try:
+    from gpiozero import LED
+    USE_GPIO = False
+    CONTROL_MAPPING = {}
+except ImportError:
+    USE_GPIO = True
+    CONTROL_MAPPING = {
+        "forward": LED(17),
+        "backward": LED(27),
+        "left": LED(22),
+        "right": LED(23),
+        "up": LED(24),
+        "down": LED(25),
+    }
+    print("Not running on a Raspberry Pi - GPIO functionality disabled")
 
 
 # https://websockets.readthedocs.io/en/stable/howto/patterns.html
+
+controls = {
+    "forward": False,
+    "backward": False,
+    "left": False,
+    "right": False,
+    "up": False,
+    "down": False,
+}
 
 
 async def consumer_handler(websocket):
@@ -17,8 +41,21 @@ async def producer_handler(websocket):
     pass
 
 
+async def gpio_handler():
+    while True:
+        print(controls)
+        if USE_GPIO:
+            for control, control_value in controls.items():
+                if control_value:
+                    CONTROL_MAPPING[control].on()
+                else:
+                    CONTROL_MAPPING[control].off()
+
+        await asyncio.sleep(0.1)
+
+
 async def handler(websocket):
-    await asyncio.gather(consumer_handler(websocket), producer_handler(websocket))
+    await asyncio.gather(consumer_handler(websocket), producer_handler(websocket), gpio_handler())
 
 
 async def main(host, port):

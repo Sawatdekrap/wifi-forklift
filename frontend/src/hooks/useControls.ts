@@ -1,37 +1,43 @@
 import { useEffect, useState } from "react";
 
 interface Controls {
-  fb: number;
-  lr: number;
-  ud: number;
+  forward: boolean;
+  backward: boolean;
+  left: boolean;
+  right: boolean;
+  up: boolean;
+  down: boolean;
 }
 
 const useControls = () => {
   const [controls, setControls] = useState<Controls>({
-    fb: 0,
-    lr: 0,
-    ud: 0,
+    forward: false,
+    backward: false,
+    left: false,
+    right: false,
+    up: false,
+    down: false,
   });
 
   const onKeyDown = (e: KeyboardEvent) => {
     switch (e.key) {
       case "w":
-        setControls((prev) => ({ ...prev, fb: 1 }));
+        setControls((prev) => ({ ...prev, forward: true }));
         break;
       case "s":
-        setControls((prev) => ({ ...prev, fb: -1 }));
+        setControls((prev) => ({ ...prev, backward: true }));
         break;
       case "a":
-        setControls((prev) => ({ ...prev, lr: -1 }));
+        setControls((prev) => ({ ...prev, left: true }));
         break;
       case "d":
-        setControls((prev) => ({ ...prev, lr: 1 }));
+        setControls((prev) => ({ ...prev, right: true }));
         break;
       case "q":
-        setControls((prev) => ({ ...prev, ud: 1 }));
+        setControls((prev) => ({ ...prev, up: true }));
         break;
       case "e":
-        setControls((prev) => ({ ...prev, ud: -1 }));
+        setControls((prev) => ({ ...prev, down: true }));
         break;
     }
   };
@@ -39,22 +45,22 @@ const useControls = () => {
   const onKeyUp = (e: KeyboardEvent) => {
     switch (e.key) {
       case "w":
-        setControls((prev) => ({ ...prev, fb: 0 }));
+        setControls((prev) => ({ ...prev, forward: false }));
         break;
       case "s":
-        setControls((prev) => ({ ...prev, fb: 0 }));
+        setControls((prev) => ({ ...prev, backward: false }));
         break;
       case "a":
-        setControls((prev) => ({ ...prev, lr: 0 }));
+        setControls((prev) => ({ ...prev, left: false }));
         break;
       case "d":
-        setControls((prev) => ({ ...prev, lr: 0 }));
+        setControls((prev) => ({ ...prev, right: false }));
         break;
       case "q":
-        setControls((prev) => ({ ...prev, ud: 0 }));
+        setControls((prev) => ({ ...prev, up: false }));
         break;
       case "e":
-        setControls((prev) => ({ ...prev, ud: 0 }));
+        setControls((prev) => ({ ...prev, down: false }));
         break;
     }
   };

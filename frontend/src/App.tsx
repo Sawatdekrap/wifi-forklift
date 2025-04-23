@@ -9,7 +9,16 @@ function App() {
   const [url, setUrl] = useState("");
   const [urlText, setUrlText] = useState("");
 
-  const { fb, lr, ud, simulateKeyPress, simulateKeyRelease } = useControls();
+  const {
+    forward,
+    backward,
+    left,
+    right,
+    up,
+    down,
+    simulateKeyPress,
+    simulateKeyRelease,
+  } = useControls();
   const { sendMessage, isConnected, addMessageListener } = useWebSocket({
     url,
   });
@@ -31,20 +40,20 @@ function App() {
   // Send state immediately when controls change
   useEffect(() => {
     if (isConnected) {
-      sendMessage({ fb, lr, ud });
+      sendMessage({ forward, backward, left, right, up, down });
     }
-  }, [fb, lr, ud, isConnected, sendMessage]);
+  }, [forward, backward, left, right, up, down, isConnected, sendMessage]);
 
   // Set up interval for sending state
   useEffect(() => {
     const interval = setInterval(() => {
       if (isConnected) {
-        sendMessage({ fb, lr, ud });
+        sendMessage({ forward, backward, left, right, up, down });
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isConnected, fb, lr, ud, sendMessage]);
+  }, [isConnected, forward, backward, left, right, up, down, sendMessage]);
 
   return (
     <div>
