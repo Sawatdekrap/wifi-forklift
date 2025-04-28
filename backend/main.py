@@ -1,22 +1,27 @@
 import asyncio
 import argparse
+import csv
 from websockets.asyncio.server import serve
+
+gpio_mapping = {}
+with open("mapping.csv", "r") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        gpio_mapping[row["control"]] = int(row["gpio"])
+print("GPIO mapping:")
+for control, gpio in gpio_mapping.items():
+    print(f"{control}: {gpio}")
+
 try:
     from gpiozero import LED
     USE_GPIO = False
-    CONTROL_MAPPING = {}
+    CONTROL_MAPPING = {
+        control: LED(gpio) for control, gpio in gpio_mapping.items()
+    }
 except ImportError:
     USE_GPIO = True
-    CONTROL_MAPPING = {
-        "forward": LED(17),
-        "backward": LED(27),
-        "left": LED(22),
-        "right": LED(23),
-        "up": LED(24),
-        "down": LED(25),
-    }
+    CONTROL_MAPPING = {}
     print("Not running on a Raspberry Pi - GPIO functionality disabled")
-
 
 # https://websockets.readthedocs.io/en/stable/howto/patterns.html
 
@@ -28,6 +33,7 @@ controls = {
     "up": False,
     "down": False,
 }
+assert set(gpio_mapping.keys()) == set(controls.keys()), "GPIO mapping and control keys must match"
 
 
 async def consumer_handler(websocket):
