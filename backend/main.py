@@ -1,6 +1,7 @@
 import asyncio
 import argparse
 import csv
+import json
 from websockets.asyncio.server import serve
 
 gpio_mapping = {}
@@ -14,12 +15,12 @@ for control, gpio in gpio_mapping.items():
 
 try:
     from gpiozero import LED
-    USE_GPIO = False
+    USE_GPIO = True
     CONTROL_MAPPING = {
         control: LED(gpio) for control, gpio in gpio_mapping.items()
     }
 except ImportError:
-    USE_GPIO = True
+    USE_GPIO = False
     CONTROL_MAPPING = {}
     print("Not running on a Raspberry Pi - GPIO functionality disabled")
 
@@ -38,18 +39,26 @@ assert set(gpio_mapping.keys()) == set(controls.keys()), "GPIO mapping and contr
 
 async def consumer_handler(websocket):
     async for message in websocket:
-        print(message)
-        await websocket.send(message)
+        print("Input: ", message)
+        try:
+            message = json.loads(message)
+        except json.JSONDecodeError:
+            print("Invalid JSON message")
+            continue
+        for control in controls:
+            controls[control] = message.get(control, False)
 
 
 async def producer_handler(websocket):
-    # TODO Camera module output
-    pass
+    while True:
+        payload = {gpio_mapping[control]: controls[control] for control in controls}
+        await websocket.send(json.dumps(payload))
+        await asyncio.sleep(0.5)
 
 
 async def gpio_handler():
     while True:
-        print(controls)
+        print("Output: ", controls)
         if USE_GPIO:
             for control, control_value in controls.items():
                 if control_value:
