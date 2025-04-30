@@ -59,7 +59,7 @@ async def producer_handler(websocket):
         return
 
     camera = PiCamera()
-    camera.resolution = (1280, 720)
+    camera.resolution = (640, 480)
     stream = BytesIO()
     while True:
         camera.capture(stream, format="jpeg")

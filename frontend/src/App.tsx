@@ -8,6 +8,7 @@ import "./components/KeyboardControls.css";
 function App() {
   const [url, setUrl] = useState("");
   const [urlText, setUrlText] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   const {
     forward,
@@ -32,7 +33,13 @@ function App() {
   useEffect(() => {
     if (isConnected) {
       addMessageListener((message) => {
-        console.log("Received message: ", message);
+        // Handle binary image data
+        if (message instanceof Blob) {
+          const url = URL.createObjectURL(message);
+          setImageUrl(url);
+          // Clean up the previous URL to prevent memory leaks
+          return () => URL.revokeObjectURL(url);
+        }
       });
     }
   }, [isConnected, addMessageListener]);
@@ -70,6 +77,15 @@ function App() {
         }`}
       >
         {isConnected ? "Connected" : "Disconnected"}
+      </div>
+      <div className="camera-feed">
+        {imageUrl && isConnected ? (
+          <img src={imageUrl} alt="Camera feed" />
+        ) : (
+          <div className="camera-feed-placeholder">
+            {isConnected ? "Waiting for camera feed..." : "Camera disconnected"}
+          </div>
+        )}
       </div>
       <KeyboardControls
         onKeyPress={simulateKeyPress}

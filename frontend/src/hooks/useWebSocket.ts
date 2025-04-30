@@ -17,6 +17,8 @@ export const useWebSocket = ({
     if (ws.current?.readyState === WebSocket.OPEN) return;
 
     ws.current = new WebSocket(url);
+    // Configure WebSocket to handle binary messages
+    ws.current.binaryType = "blob";
 
     ws.current.onopen = () => {
       setIsConnected(true);
@@ -26,10 +28,13 @@ export const useWebSocket = ({
       setIsConnected(false);
       reconnectTimeout.current = window.setTimeout(connect, reconnectInterval);
     };
+
+    ws.current.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
   }, [url, reconnectInterval]);
 
   const sendMessage = useCallback((message: string | object) => {
-    console.log("readyState", ws.current?.readyState);
     if (ws.current?.readyState === WebSocket.OPEN) {
       const data =
         typeof message === "string" ? message : JSON.stringify(message);
