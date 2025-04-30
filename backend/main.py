@@ -2,7 +2,9 @@ import asyncio
 import argparse
 import csv
 import json
+from io import BytesIO
 from websockets.asyncio.server import serve
+
 
 gpio_mapping = {}
 with open("mapping.csv", "r") as f:
@@ -15,12 +17,15 @@ for control, gpio in gpio_mapping.items():
 
 try:
     from gpiozero import LED
+    from picamera import PiCamera
     USE_GPIO = True
+    USE_CAMERA = True
     CONTROL_MAPPING = {
         control: LED(gpio) for control, gpio in gpio_mapping.items()
     }
 except ImportError:
     USE_GPIO = False
+    USE_CAMERA = False
     CONTROL_MAPPING = {}
     print("Not running on a Raspberry Pi - GPIO functionality disabled")
 
@@ -50,11 +55,19 @@ async def consumer_handler(websocket):
 
 
 async def producer_handler(websocket):
-    while True:
-        payload = {gpio_mapping[control]: controls[control] for control in controls}
-        await websocket.send(json.dumps(payload))
-        await asyncio.sleep(0.5)
+    if not USE_CAMERA:
+        return
 
+    camera = PiCamera()
+    camera.resolution = (1280, 720)
+    stream = BytesIO()
+    while True:
+        camera.capture(stream, format="jpeg")
+        stream.seek(0)
+        await websocket.send(stream.read())
+        stream.truncate(0)
+        stream.seek(0)
+        await asyncio.sleep(0.1)
 
 async def gpio_handler():
     while True:
