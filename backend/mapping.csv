@@ -1,7 +1,7 @@
 control,gpio
-forward,23
-backward,24
-left,20
-right,21
-up,25
-down,8
+forward,20
+backward,21
+left,8
+right,25
+up,23
+down,24
