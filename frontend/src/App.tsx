@@ -34,8 +34,8 @@ function App() {
     if (isConnected) {
       addMessageListener((message) => {
         // Handle binary image data
-        if (message instanceof Blob) {
-          const url = URL.createObjectURL(message);
+        if (message.data instanceof Blob) {
+          const url = URL.createObjectURL(message.data);
           setImageUrl(url);
           // Clean up the previous URL to prevent memory leaks
           return () => URL.revokeObjectURL(url);
@@ -80,7 +80,11 @@ function App() {
       </div>
       <div className="camera-feed">
         {imageUrl && isConnected ? (
-          <img src={imageUrl} alt="Camera feed" />
+          <img
+            src={imageUrl}
+            alt="Camera feed"
+            style={{ transform: "rotate(180deg)" }} // Currently the camera is mounted upside down
+          />
         ) : (
           <div className="camera-feed-placeholder">
             {isConnected ? "Waiting for camera feed..." : "Camera disconnected"}
