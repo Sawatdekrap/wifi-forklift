@@ -19,7 +19,7 @@ for control, gpio in gpio_mapping.items():
 try:
     from gpiozero import LED
     from picamera2 import Picamera2
-    from picamera2.encoders import JpegEncoder
+    from PIL import Image
     USE_GPIO = True
     CONTROL_MAPPING = {
         control: LED(gpio) for control, gpio in gpio_mapping.items()
@@ -68,8 +68,6 @@ async def producer_handler(websocket):
     if not USE_CAMERA:
         return
 
-    # Initialize encoder once with configuration
-    encoder = JpegEncoder(q=85)  # Set JPEG quality to 85
     stream = BytesIO()
 
     while True:
@@ -77,8 +75,9 @@ async def producer_handler(websocket):
         frame = camera.capture_array()
         print(f"Captured frame shape: {frame.shape}")
 
-        # Convert to JPEG
-        encoder.encode(frame, stream)
+        # Convert to JPEG using PIL
+        image = Image.fromarray(frame)
+        image.save(stream, format='JPEG', quality=85)
         stream_size = stream.getbuffer().nbytes
         print(f"Encoded stream size: {stream_size} bytes")
 
