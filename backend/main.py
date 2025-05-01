@@ -28,8 +28,9 @@ try:
     USE_CAMERA = True
     camera = Picamera2()
     camera.configure(camera.create_video_configuration(
-        main={"size": (640, 480), "format": "RGB888"},
-        encode="main"
+        main={"size": (320, 240), "format": "RGB888"},
+        encode="main",
+        buffer_count=4
     ))
     camera.start()
     time.sleep(1)
@@ -75,9 +76,9 @@ async def producer_handler(websocket):
         frame = camera.capture_array()
         print(f"Captured frame shape: {frame.shape}")
 
-        # Convert to JPEG using PIL
+        # Convert to JPEG using PIL with optimized settings
         image = Image.fromarray(frame)
-        image.save(stream, format='JPEG', quality=85)
+        image.save(stream, format='JPEG', quality=70, optimize=True)
         stream_size = stream.getbuffer().nbytes
         print(f"Encoded stream size: {stream_size} bytes")
 
@@ -89,7 +90,7 @@ async def producer_handler(websocket):
         stream.truncate(0)
         stream.seek(0)
 
-        await asyncio.sleep(0.1)  # 10 FPS
+        await asyncio.sleep(0.5)
 
 
 async def gpio_handler():
