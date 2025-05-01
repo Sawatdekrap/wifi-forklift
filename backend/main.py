@@ -17,7 +17,8 @@ for control, gpio in gpio_mapping.items():
 
 try:
     from gpiozero import LED
-    from picamera import PiCamera
+    from picamera2 import Picamera2
+    from picamera2.encoders import JpegEncoder
     USE_GPIO = True
     USE_CAMERA = True
     CONTROL_MAPPING = {
@@ -58,16 +59,39 @@ async def producer_handler(websocket):
     if not USE_CAMERA:
         return
 
-    camera = PiCamera()
-    camera.resolution = (640, 480)
+    # Initialize camera
+    camera = Picamera2()
+    camera.configure(camera.create_video_configuration(
+        main={"size": (640, 480), "format": "RGB888"},
+        encode="main"
+    ))
+    camera.start()
+
+    # Initialize encoder once
+    encoder = JpegEncoder()
     stream = BytesIO()
-    while True:
-        camera.capture(stream, format="jpeg")
-        stream.seek(0)
-        await websocket.send(stream.read())
-        stream.truncate(0)
-        stream.seek(0)
-        await asyncio.sleep(0.1)
+
+    try:
+        while True:
+            # Capture frame
+            frame = camera.capture_array()
+
+            # Convert to JPEG
+            encoder.encode(frame, stream)
+
+            # Send frame
+            stream.seek(0)
+            await websocket.send(stream.read())
+            stream.truncate(0)
+            stream.seek(0)
+
+            await asyncio.sleep(0.1)  # 10 FPS
+    except Exception as e:
+        print(f"Camera error: {e}")
+    finally:
+        camera.stop()
+        print("Camera stopped")
+
 
 async def gpio_handler():
     while True:
