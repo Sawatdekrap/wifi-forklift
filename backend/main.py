@@ -2,6 +2,7 @@ import asyncio
 import argparse
 import csv
 import json
+import time
 from io import BytesIO
 from websockets.asyncio.server import serve
 
@@ -20,15 +21,23 @@ try:
     from picamera2 import Picamera2
     from picamera2.encoders import JpegEncoder
     USE_GPIO = True
-    USE_CAMERA = True
     CONTROL_MAPPING = {
         control: LED(gpio) for control, gpio in gpio_mapping.items()
     }
+
+    USE_CAMERA = True
+    camera = Picamera2()
+    camera.configure(camera.create_video_configuration(
+        main={"size": (640, 480), "format": "RGB888"},
+        encode="main"
+    ))
+    camera.start()
+    time.sleep(1)
 except ImportError:
     USE_GPIO = False
     USE_CAMERA = False
     CONTROL_MAPPING = {}
-    print("Not running on a Raspberry Pi - GPIO functionality disabled")
+    print("Not running on a Raspberry Pi - GPIO and camera functionality disabled")
 
 # https://websockets.readthedocs.io/en/stable/howto/patterns.html
 
@@ -59,43 +68,29 @@ async def producer_handler(websocket):
     if not USE_CAMERA:
         return
 
-    # Initialize camera
-    camera = Picamera2()
-    camera.configure(camera.create_video_configuration(
-        main={"size": (640, 480), "format": "RGB888"},
-        encode="main"
-    ))
-    camera.start()
-
-    # Initialize encoder once
-    encoder = JpegEncoder()
+    # Initialize encoder once with configuration
+    encoder = JpegEncoder(q=85)  # Set JPEG quality to 85
     stream = BytesIO()
 
-    try:
-        while True:
-            # Capture frame
-            frame = camera.capture_array()
-            print(f"Captured frame shape: {frame.shape}")
+    while True:
+        # Capture frame
+        frame = camera.capture_array()
+        print(f"Captured frame shape: {frame.shape}")
 
-            # Convert to JPEG
-            encoder.encode(frame, stream)
-            stream_size = stream.getbuffer().nbytes
-            print(f"Encoded stream size: {stream_size} bytes")
+        # Convert to JPEG
+        encoder.encode(frame, stream)
+        stream_size = stream.getbuffer().nbytes
+        print(f"Encoded stream size: {stream_size} bytes")
 
-            # Send frame
-            stream.seek(0)
-            data = stream.read()
-            print(f"Read data size: {len(data)} bytes")
-            await websocket.send(data)
-            stream.truncate(0)
-            stream.seek(0)
+        # Send frame
+        stream.seek(0)
+        data = stream.read()
+        print(f"Read data size: {len(data)} bytes")
+        await websocket.send(data)
+        stream.truncate(0)
+        stream.seek(0)
 
-            await asyncio.sleep(0.1)  # 10 FPS
-    except Exception as e:
-        print(f"Camera error: {e}")
-    finally:
-        camera.stop()
-        print("Camera stopped")
+        await asyncio.sleep(0.1)  # 10 FPS
 
 
 async def gpio_handler():
@@ -122,8 +117,13 @@ async def handler(websocket):
 
 async def main(host, port):
     print(f"Starting server at ws://{host}:{port}")
-    async with serve(handler, host, port) as server:
-        await server.serve_forever()
+    try:
+        async with serve(handler, host, port) as server:
+            await server.serve_forever()
+    except Exception as e:
+        if USE_CAMERA:
+            camera.stop()
+        raise e
 
 
 if __name__ == "__main__":
