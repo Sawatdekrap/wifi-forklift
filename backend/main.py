@@ -3,8 +3,22 @@ import argparse
 import csv
 import json
 import time
+import socket
 from io import BytesIO
 from websockets.asyncio.server import serve
+
+
+def get_ip_address():
+    try:
+        # Create a socket to get the IP address
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # Doesn't need to be reachable
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return 'localhost'
 
 
 gpio_mapping = {}
@@ -116,7 +130,9 @@ async def handler(websocket):
 
 
 async def main(host, port):
-    print(f"Starting server at ws://{host}:{port}")
+    ip_address = get_ip_address()
+    print(f"Starting server at ws://{ip_address}:{port}")
+    print(f"Local access: ws://localhost:{port}")
     try:
         async with serve(handler, host, port) as server:
             await server.serve_forever()
@@ -128,7 +144,7 @@ async def main(host, port):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='WebSocket server for forklift controls')
-    parser.add_argument('--host', default='localhost', help='Host to bind the server to (default: localhost)')
+    parser.add_argument('--host', default='0.0.0.0', help='Host to bind the server to (default: 0.0.0.0)')
     parser.add_argument('--port', type=int, default=8765, help='Port to bind the server to (default: 8765)')
     args = parser.parse_args()
 
