@@ -90,7 +90,7 @@ async def producer_handler(websocket):
         stream.truncate(0)
         stream.seek(0)
 
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.2)
 
 
 async def gpio_handler():
