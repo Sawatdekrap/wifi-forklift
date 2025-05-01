@@ -75,13 +75,18 @@ async def producer_handler(websocket):
         while True:
             # Capture frame
             frame = camera.capture_array()
+            print(f"Captured frame shape: {frame.shape}")
 
             # Convert to JPEG
             encoder.encode(frame, stream)
+            stream_size = stream.getbuffer().nbytes
+            print(f"Encoded stream size: {stream_size} bytes")
 
             # Send frame
             stream.seek(0)
-            await websocket.send(stream.read())
+            data = stream.read()
+            print(f"Read data size: {len(data)} bytes")
+            await websocket.send(data)
             stream.truncate(0)
             stream.seek(0)
 
@@ -94,8 +99,12 @@ async def producer_handler(websocket):
 
 
 async def gpio_handler():
+    step = 0
     while True:
-        print("Output: ", controls)
+        if step % 10 == 0:
+            print("Output: ", controls)
+
+        step += 1
         if USE_GPIO:
             for control, control_value in controls.items():
                 if control_value:
