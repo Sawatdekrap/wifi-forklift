@@ -107,6 +107,7 @@ async def gpio_handler():
 
 
 async def handler(websocket):
+    print("New connection from", websocket.remote_address)
     await asyncio.gather(consumer_handler(websocket), producer_handler(websocket), gpio_handler())
 
 

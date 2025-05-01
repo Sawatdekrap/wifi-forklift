@@ -1,3 +1,2 @@
 websockets
 gpiozero
-picamera2
